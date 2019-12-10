@@ -13,6 +13,16 @@ struct DataFrame { // represents the available sensor information at the same ti
     cv::Mat descriptors; // keypoint descriptors
     std::vector<cv::DMatch> kptMatches; // keypoint matches between previous and current frame
 };
-
-
+template<typename T>
+class RingBuffer{
+public:
+    RingBuffer(int);
+    T at(int);
+    void add(T);
+    size_t size();
+    typename std::vector<T>::iterator end();
+private:
+    std::vector<T> bdata;
+    size_t bsize;
+};
 #endif /* dataStructures_h */
