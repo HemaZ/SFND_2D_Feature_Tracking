@@ -10,15 +10,19 @@ void matchDescriptors(std::vector<cv::KeyPoint> &kPtsSource, std::vector<cv::Key
     // configure matcher
     bool crossCheck = false;
     cv::Ptr<cv::DescriptorMatcher> matcher;
-
+    int normType = descriptorType.compare("DES_BINARY") == 0 ? cv::NORM_HAMMING : cv::NORM_L2;
     if (matcherType.compare("MAT_BF") == 0)
     {
-        int normType = cv::NORM_HAMMING;
         matcher = cv::BFMatcher::create(normType, crossCheck);
     }
     else if (matcherType.compare("MAT_FLANN") == 0)
     {
-        // ...
+        if (descSource.type() != CV_32F || descRef.type() != CV_32F)
+        { // OpenCV bug workaround : convert binary descriptors to floating point due to a bug in current OpenCV implementation
+            descSource.convertTo(descSource, CV_32F);
+            descRef.convertTo(descRef, CV_32F);
+        }
+        matcher = cv::FlannBasedMatcher::create();
     }
 
     // perform matching task
@@ -30,7 +34,17 @@ void matchDescriptors(std::vector<cv::KeyPoint> &kPtsSource, std::vector<cv::Key
     else if (selectorType.compare("SEL_KNN") == 0)
     { // k nearest neighbors (k=2)
 
-        // ...
+        std::vector<std::vector<cv::DMatch> > knn_matches;
+        matcher -> knnMatch(descSource, descRef, knn_matches, 2);
+        double minDescDistRatio = 0.8;
+        for (auto it = knn_matches.begin(); it != knn_matches.end(); ++it)
+        {
+
+            if ((*it)[0].distance < minDescDistRatio * (*it)[1].distance)
+            {
+                matches.push_back((*it)[0]);
+            }
+        }
     }
 }
 
@@ -48,12 +62,19 @@ void descKeypoints(vector<cv::KeyPoint> &keypoints, cv::Mat &img, cv::Mat &descr
 
         extractor = cv::BRISK::create(threshold, octaves, patternScale);
     }
-    else
-    {
-
-        //...
+    else if(descriptorType.compare("BRIEF") == 0){
+        extractor = cv::xfeatures2d::BriefDescriptorExtractor::create();
+    }else if(descriptorType.compare("ORB") == 0){
+        extractor = cv::ORB::create();
+    }else if(descriptorType.compare("FREAK") == 0){
+        extractor = cv::xfeatures2d::FREAK::create();
     }
-
+    else if(descriptorType.compare("AKAZE") == 0){
+        extractor = cv::AKAZE::create();
+    }
+   else if(descriptorType.compare("SIFT") == 0){
+        extractor = cv::xfeatures2d::SiftDescriptorExtractor::create();
+    }
     // perform feature description
     double t = (double)cv::getTickCount();
     extractor->compute(img, keypoints, descriptors);
@@ -167,24 +188,31 @@ void detKeypointsHarris(std::vector<cv::KeyPoint> &keypoints, cv::Mat &img, bool
 }
 void detKeypointsModern(std::vector<cv::KeyPoint> &keypoints, cv::Mat &img, std::string detectorType, bool bVis){
     int threshold = 20;
+    double t;
     if(detectorType.compare("FAST") == 0){
+        t = (double)cv::getTickCount();
         bool nonmaxSuppression = true;
         cv::FAST(img, keypoints, threshold, nonmaxSuppression);
     }else if(detectorType.compare("BRISK") == 0){
+        t = (double)cv::getTickCount();
         cv::Ptr<cv::BRISK> brisk = cv::BRISK::create();
         brisk->detect(img, keypoints);
     }else if(detectorType.compare("ORB") == 0){
+        t = (double)cv::getTickCount();
        cv::Ptr<cv::ORB> orb = cv::ORB::create();
         orb ->detect(img, keypoints);
 
     }else if(detectorType.compare("AKAZE") == 0){
+        t = (double)cv::getTickCount();
         cv::Ptr<cv::AKAZE> akaze = cv::AKAZE::create();
         akaze -> detect(img, keypoints);
     }else{
+        t = (double)cv::getTickCount();
         cv::Ptr<cv::Feature2D> sift = cv::xfeatures2d::SIFT::create();
         sift -> detect(img, keypoints);
     }
-    cout << "Found KeyPoints using " << detectorType << " = " << keypoints.size() << endl;
+    t = ((double)cv::getTickCount() - t) / cv::getTickFrequency();
+    cout << detectorType << " with n= " << keypoints.size() << " keypoints in " << 1000 * t / 1.0 << " ms" << endl;
     if(bVis){
         cv::Mat visImage = img.clone();
         cv::drawKeypoints(img, keypoints, visImage, cv::Scalar::all(-1), cv::DrawMatchesFlags::DRAW_RICH_KEYPOINTS);

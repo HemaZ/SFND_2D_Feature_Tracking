@@ -56,7 +56,17 @@ int main(int argc, const char *argv[])
         cv::Mat img, imgGray;
         img = cv::imread(imgFullFilename);
         cv::cvtColor(img, imgGray, cv::COLOR_BGR2GRAY);
-
+         //// STUDENT ASSIGNMENT
+        //// TASK MP.3 -> only keep keypoints on the preceding vehicle
+        // only keep keypoints on the preceding vehicle
+        // i've moved this to the top to save computing time
+        bool bFocusOnVehicle = true;
+        cv::Rect vehicleRect(535, 180, 180, 150);
+        if (bFocusOnVehicle)
+        {
+           imgGray = imgGray(vehicleRect);
+        }
+        //// EOF STUDENT ASSIGNMENT
         //// STUDENT ASSIGNMENT
         //// TASK MP.1 -> replace the following code with ring buffer of size dataBufferSize
 
@@ -67,12 +77,14 @@ int main(int argc, const char *argv[])
 
         //// EOF STUDENT ASSIGNMENT
         cout << "#1 : LOAD IMAGE INTO BUFFER done" << endl;
+        //// EOF STUDENT ASSIGNMENT
 
+       
         /* DETECT IMAGE KEYPOINTS */
 
         // extract 2D keypoints from current image
         vector<cv::KeyPoint> keypoints; // create empty feature list for current image
-        string detectorType = "SIFT";
+        string detectorType = "AKAZE";
 
         //// STUDENT ASSIGNMENT
         //// TASK MP.2 -> add the following keypoint detectors in file matching2D.cpp and enable string-based selection based on detectorType
@@ -88,20 +100,6 @@ int main(int argc, const char *argv[])
         }else{
            detKeypointsModern(keypoints, imgGray, detectorType, false);
         }
-        //// EOF STUDENT ASSIGNMENT
-
-        //// STUDENT ASSIGNMENT
-        //// TASK MP.3 -> only keep keypoints on the preceding vehicle
-
-        // only keep keypoints on the preceding vehicle
-        bool bFocusOnVehicle = true;
-        cv::Rect vehicleRect(535, 180, 180, 150);
-        if (bFocusOnVehicle)
-        {
-            // ...
-        }
-
-        //// EOF STUDENT ASSIGNMENT
 
         // optional : limit number of keypoints (helpful for debugging and learning)
         bool bLimitKpts = false;
@@ -128,7 +126,7 @@ int main(int argc, const char *argv[])
         //// -> BRIEF, ORB, FREAK, AKAZE, SIFT
 
         cv::Mat descriptors;
-        string descriptorType = "BRISK"; // BRIEF, ORB, FREAK, AKAZE, SIFT
+        string descriptorType = "AKAZE"; // BRIEF, ORB, FREAK, AKAZE, SIFT
         descKeypoints((dataBuffer.end() - 1)->keypoints, (dataBuffer.end() - 1)->cameraImg, descriptors, descriptorType);
         //// EOF STUDENT ASSIGNMENT
 
@@ -143,7 +141,7 @@ int main(int argc, const char *argv[])
             /* MATCH KEYPOINT DESCRIPTORS */
 
             vector<cv::DMatch> matches;
-            string matcherType = "MAT_BF";        // MAT_BF, MAT_FLANN
+            string matcherType = "MAT_FLANN";        // MAT_BF, MAT_FLANN
             string descriptorType = "DES_BINARY"; // DES_BINARY, DES_HOG
             string selectorType = "SEL_NN";       // SEL_NN, SEL_KNN
 
