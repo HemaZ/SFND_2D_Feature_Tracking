@@ -14,7 +14,6 @@
 #include <opencv2/xfeatures2d/nonfree.hpp>
 
 #include "dataStructures.h"
-#include "dataStructures.cpp"
 #include "matching2D.hpp"
 
 using namespace std;
