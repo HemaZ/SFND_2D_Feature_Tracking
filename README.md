@@ -1,3 +1,17 @@
+# Midterm Report
+## MP.1 Data Buffer Optimization:
+ * I've implmented a new template class which i called "RingBuffer" in dataStructers.h file. the class simply contains a private vector which can be accesed by the member functions.
+*  The function add() checks if the vector is full, it removes the first element of the vector and add the new element at the end.  
+
+## MP.2 Keypoint Detection:
+* OpenCV offers a great number of KeyPoints Detectors. In this task it is required to implement detectors HARRIS, FAST, BRISK, ORB, AKAZE, and SIFT.
+* `void detKeypointsModern(std::vector<cv::KeyPoint> &keypoints, cv::Mat &img, std::string detectorType, double &totaltime, bool bVis=false);
+` This function takes the detector type as a string and create an opencv detector fo the same type.
+
+
+
+
+
 # SFND 2D Feature Tracking
 
 <img src="images/keypoints.png" width="820" height="248" />
