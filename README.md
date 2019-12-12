@@ -1,6 +1,6 @@
 # Midterm Report
 ## MP.1 Data Buffer Optimization:
- * I've implmented a new template class which i called "RingBuffer" in dataStructers.h file. the class simply contains a private vector which can be accesed by the member functions.
+ * I've implemented a new template class which i called "RingBuffer" in dataStructers.h file. the class simply contains a private vector which can be accessed by the member functions.
 *  The function add() checks if the vector is full, it removes the first element of the vector and add the new element at the end.  
 
 ## MP.2 Keypoint Detection:
@@ -8,9 +8,47 @@
 * `void detKeypointsModern(std::vector<cv::KeyPoint> &keypoints, cv::Mat &img, std::string detectorType, double &totaltime, bool bVis=false);
 ` This function takes the detector type as a string and create an opencv detector fo the same type.
 
+## MP.3 Keypoint Removal
+* This task requirement is to filter out the keypoints which lay outside a certain region.
+* I've cropped the input image to include only the region of interest. 
+* This approach would save computation time and reduce the total number of keypoints.
 
-
-
+## MP.4 Keypoint Descriptors
+* In this task we should use a certain number of opencv descriptors by definig the descriptor type.
+* These descriptors are BRIEF, ORB, FREAK, AKAZE and SIFT.
+* Opencv offers a unified type for the descriptors which is `cv::DescriptorExtractor` 
+* The function `descKeypoints` takes the descriptor type as an input argument. 
+* depending on this type an descriptor object is created and used. 
+## MP.5 Descriptor Matching
+* After computing the descriptors of each keypoint the next step is to match the keypoints between different images.
+* OpenCV offers 2 matching algorithms which are Brute Force and FLANN and it offers also a unified type which is `cv::DescriptorMatcher`
+* Brute force algorithm is straightforward and uses L2 Norm or HAMMING depending on the descriptor type.
+* FLANN Matcher implementation in opencv requires some attention as it complains about descriptors data types.
+* So all descriptors should be converted to `CV_32F` if we are going to use FLANN Matcher.
+## MP.6 Descriptor Distance Ratio
+* The matchers return the nearest neighbor for every keypoint.
+* We implement the KNearest neighbor and use the distance ratio test.
+* This test could be very useful to reduce number of false positive detection. 
+* The two best matches and the ratio between the descriptor distances is computed.
+* A threshold is applied to the ratio and if the condition is satisfied the nearest match is considered. 
+## MP.7 Performance Evaluation 1
+ * The KeyPoints Detector function prints the number of keypoints for every image.
+ * Because the image is cropped in task 3 the keypoints number correspond to the number of keypoints on the preceding vehicle.
+## MP.8 Performance Evaluation 2
+* By varying the combination of Detectors and descriptors we can count the number of matched keypoints.
+* The matching function print the number of matched points.
+## MP.9 Performance Evaluation 3
+* I've declared an extra variable `double totaltime` and passed it in all the detectors, descriptors and matchers function.
+* These function add their processing time to this variable.
+* At the end of the main function i print this variable. 
+* I've logged the total time for every combination of detectors and descriptors.
+* I've also logged the total number of matched keypoints.
+* These data could be found in the following PDF [link](docs/Performance_Evaluation.pdf).
+* Based on the computation time and total number of matched keypoints the best 3 combinations were recommended.
+* These top 3 combinations are:
+    1. HARRIS & BRIEF
+    2. FAST & ORB
+    3. FAST & BRIEF
 
 # SFND 2D Feature Tracking
 
